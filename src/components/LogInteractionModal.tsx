@@ -13,10 +13,16 @@ interface Props {
 
 const TYPES = Object.keys(INTERACTION_LABELS) as InteractionType[]
 
-function toLocalDatetimeValue(isoString: string) {
-  const d = new Date(isoString)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+const TZ = 'Asia/Dubai'
+
+function toDatetimeInputValue(date: Date): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: TZ,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(date)
+  const get = (type: string) => parts.find(p => p.type === type)?.value ?? '00'
+  return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`
 }
 
 export default function LogInteractionModal({ contactId, onClose, interaction }: Props) {
@@ -79,8 +85,8 @@ export default function LogInteractionModal({ contactId, onClose, interaction }:
               name="occurred_at"
               defaultValue={
                 interaction
-                  ? toLocalDatetimeValue(interaction.occurred_at)
-                  : new Date().toISOString().slice(0, 16)
+                  ? toDatetimeInputValue(new Date(interaction.occurred_at))
+                  : toDatetimeInputValue(new Date())
               }
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
