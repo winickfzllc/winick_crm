@@ -8,6 +8,7 @@ import { fullName, formatRelativeDate, formatDate, outreachStatus, daysOverdue }
 import Link from 'next/link'
 import { ChevronLeft, Edit, Mail, Phone, Building2, Calendar, ExternalLink } from 'lucide-react'
 import ContactDetailClient from './ContactDetailClient'
+import FollowUpButton from './FollowUpButton'
 
 export default async function ContactDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -165,6 +166,9 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
           <div className="mt-2 flex items-center justify-between">
             <span className="text-xs text-gray-400">Last contact</span>
             <span className="text-xs font-medium text-gray-600">{formatRelativeDate(c.last_contacted_at)}</span>
+          </div>
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <FollowUpButton contactId={id} followUpDate={c.follow_up_date} />
           </div>
         </div>
 

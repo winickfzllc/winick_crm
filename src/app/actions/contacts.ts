@@ -120,15 +120,29 @@ export async function logInteractionAction(formData: FormData) {
     occurred_at: occurredAt,
   })
 
-  // Update last_contacted_at on the contact
+  // Update last_contacted_at and clear any follow-up reminder
   await supabase
     .from('contacts')
-    .update({ last_contacted_at: occurredAt, updated_at: new Date().toISOString() })
+    .update({ last_contacted_at: occurredAt, follow_up_date: null, updated_at: new Date().toISOString() })
     .eq('id', contactId)
     .eq('user_id', userId)
 
   revalidatePath('/')
   revalidatePath('/contacts')
+  revalidatePath(`/contacts/${contactId}`)
+}
+
+export async function setFollowUpAction(contactId: string, date: string | null) {
+  const userId = await requireAuth()
+  const supabase = createServerClient()
+
+  await supabase
+    .from('contacts')
+    .update({ follow_up_date: date, updated_at: new Date().toISOString() })
+    .eq('id', contactId)
+    .eq('user_id', userId)
+
+  revalidatePath('/')
   revalidatePath(`/contacts/${contactId}`)
 }
 

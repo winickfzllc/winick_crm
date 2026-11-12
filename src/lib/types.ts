@@ -20,6 +20,7 @@ export interface Contact {
   notes: string | null
   outreach_frequency_days: number
   last_contacted_at: string | null
+  follow_up_date: string | null
   created_at: string
   updated_at: string
   category?: Category

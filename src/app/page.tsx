@@ -37,6 +37,10 @@ export default async function DashboardPage() {
 
   const all = (contacts ?? []) as Contact[]
 
+  const todayGST = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dubai' }).format(new Date())
+
+  const followUps = all.filter(c => c.follow_up_date && c.follow_up_date <= todayGST)
+
   const countMap = (contactCounts ?? []).reduce<Record<string, number>>((acc, c) => {
     if (c.category_id) acc[c.category_id] = (acc[c.category_id] ?? 0) + 1
     return acc
@@ -89,6 +93,18 @@ export default async function DashboardPage() {
             <p className="text-xs text-amber-500 mt-0.5">Due soon</p>
           </Link>
         </div>
+
+        {/* Follow-ups due */}
+        {followUps.length > 0 && (
+          <section>
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">
+              Follow up
+            </h2>
+            <div className="bg-white rounded-2xl overflow-hidden shadow-sm divide-y divide-gray-100">
+              {followUps.map(c => <ContactCard key={c.id} contact={c} />)}
+            </div>
+          </section>
+        )}
 
         {/* Overdue contacts */}
         {overdue.length > 0 && (
