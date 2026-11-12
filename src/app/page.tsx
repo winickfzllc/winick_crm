@@ -1,69 +1,123 @@
-import Image from "next/image";
+import { getSession } from '@/lib/session'
+import { createServerClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import { Contact } from '@/lib/types'
+import { outreachStatus, daysOverdue, formatRelativeDate } from '@/lib/utils'
+import BottomNav from '@/components/BottomNav'
+import ContactCard from '@/components/ContactCard'
+import Link from 'next/link'
+import { logoutAction } from './actions/auth'
+import { LogOut } from 'lucide-react'
 
-export default function Home() {
+export default async function DashboardPage() {
+  const session = await getSession()
+  if (!session.userId) redirect('/login')
+
+  const supabase = createServerClient()
+
+  const { data: contacts } = await supabase
+    .from('contacts')
+    .select('*, category:categories(*)')
+    .eq('user_id', session.userId)
+    .order('first_name')
+
+  const all = (contacts ?? []) as Contact[]
+
+  const overdue = all
+    .filter(c => outreachStatus(c) === 'overdue')
+    .sort((a, b) => (daysOverdue(b) ?? 0) - (daysOverdue(a) ?? 0))
+
+  const dueSoon = all.filter(c => outreachStatus(c) === 'due-soon')
+
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-gray-50 pb-safe">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-100 px-5 pb-5"
+        style={{ paddingTop: 'max(3.5rem, calc(env(safe-area-inset-top) + 1rem))' }}>
+        <div className="flex items-center justify-between max-w-lg mx-auto">
+          <div>
+            <p className="text-sm text-gray-500">{greeting}</p>
+            <h1 className="text-2xl font-bold text-gray-900 mt-0.5">
+              {overdue.length > 0
+                ? `${overdue.length} need${overdue.length === 1 ? 's' : ''} attention`
+                : 'All caught up!'}
+            </h1>
+          </div>
+          <form action={logoutAction}>
+            <button type="submit" className="p-2 text-gray-400">
+              <LogOut size={20} />
+            </button>
+          </form>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      <div className="max-w-lg mx-auto px-4 py-5 space-y-6">
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
+            <p className="text-2xl font-bold text-gray-900">{all.length}</p>
+            <p className="text-xs text-gray-500 mt-0.5">Contacts</p>
+          </div>
+          <div className="bg-red-50 rounded-2xl p-4 text-center shadow-sm">
+            <p className="text-2xl font-bold text-red-600">{overdue.length}</p>
+            <p className="text-xs text-red-500 mt-0.5">Overdue</p>
+          </div>
+          <div className="bg-amber-50 rounded-2xl p-4 text-center shadow-sm">
+            <p className="text-2xl font-bold text-amber-600">{dueSoon.length}</p>
+            <p className="text-xs text-amber-500 mt-0.5">Due soon</p>
+          </div>
         </div>
-      </main>
+
+        {/* Overdue contacts */}
+        {overdue.length > 0 && (
+          <section>
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">
+              Overdue
+            </h2>
+            <div className="bg-white rounded-2xl overflow-hidden shadow-sm divide-y divide-gray-100">
+              {overdue.map(c => <ContactCard key={c.id} contact={c} />)}
+            </div>
+          </section>
+        )}
+
+        {/* Due soon */}
+        {dueSoon.length > 0 && (
+          <section>
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">
+              Due this week
+            </h2>
+            <div className="bg-white rounded-2xl overflow-hidden shadow-sm divide-y divide-gray-100">
+              {dueSoon.map(c => <ContactCard key={c.id} contact={c} />)}
+            </div>
+          </section>
+        )}
+
+        {/* All good / empty */}
+        {overdue.length === 0 && dueSoon.length === 0 && all.length > 0 && (
+          <div className="text-center py-12">
+            <div className="text-5xl mb-3">✅</div>
+            <p className="font-semibold text-lg text-gray-900">You&apos;re all caught up!</p>
+            <p className="text-gray-500 text-sm mt-1">No contacts are due for outreach.</p>
+          </div>
+        )}
+
+        {all.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-5xl mb-3">👋</div>
+            <p className="font-semibold text-lg text-gray-900">Add your first contact</p>
+            <p className="text-gray-500 text-sm mt-1 mb-5">Start building your personal network.</p>
+            <Link href="/contacts/new"
+              className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold">
+              Add Contact
+            </Link>
+          </div>
+        )}
+      </div>
+
+      <BottomNav />
     </div>
-  );
+  )
 }
