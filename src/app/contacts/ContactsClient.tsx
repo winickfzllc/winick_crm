@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { Contact, Category } from '@/lib/types'
-import { fullName, outreachStatus } from '@/lib/utils'
+import { fullName, outreachStatus, daysOverdue } from '@/lib/utils'
 import ContactCard from '@/components/ContactCard'
 import { Search, X } from 'lucide-react'
 import Link from 'next/link'
@@ -20,16 +20,25 @@ export default function ContactsClient({ contacts, categories, initialCategory, 
   const [categoryId, setCategoryId] = useState(initialCategory ?? '')
   const [statusFilter] = useState(initialFilter ?? '')
 
+  const statusRank = { overdue: 0, 'due-soon': 1, ok: 2 }
+
   const filtered = useMemo(() => {
-    return contacts.filter(c => {
-      const matchesQuery = !query ||
-        fullName(c).toLowerCase().includes(query.toLowerCase()) ||
-        c.company?.toLowerCase().includes(query.toLowerCase()) ||
-        c.email?.toLowerCase().includes(query.toLowerCase())
-      const matchesCat = !categoryId || c.category_id === categoryId
-      const matchesStatus = !statusFilter || outreachStatus(c) === statusFilter
-      return matchesQuery && matchesCat && matchesStatus
-    })
+    return contacts
+      .filter(c => {
+        const matchesQuery = !query ||
+          fullName(c).toLowerCase().includes(query.toLowerCase()) ||
+          c.company?.toLowerCase().includes(query.toLowerCase()) ||
+          c.email?.toLowerCase().includes(query.toLowerCase())
+        const matchesCat = !categoryId || c.category_id === categoryId
+        const matchesStatus = !statusFilter || outreachStatus(c) === statusFilter
+        return matchesQuery && matchesCat && matchesStatus
+      })
+      .sort((a, b) => {
+        const statusDiff = statusRank[outreachStatus(a)] - statusRank[outreachStatus(b)]
+        if (statusDiff !== 0) return statusDiff
+        // Within the same status group: most overdue first
+        return (daysOverdue(b) ?? 0) - (daysOverdue(a) ?? 0)
+      })
   }, [contacts, query, categoryId, statusFilter])
 
   return (

@@ -25,8 +25,7 @@ export default async function ContactsPage({
     supabase
       .from('contacts')
       .select('*, category:categories(*)')
-      .eq('user_id', session.userId)
-      .order('first_name'),
+      .eq('user_id', session.userId),
     supabase
       .from('categories')
       .select('*')
