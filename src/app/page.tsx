@@ -3,13 +3,14 @@ export const dynamic = 'force-dynamic'
 import { getSession } from '@/lib/session'
 import { createServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Contact } from '@/lib/types'
+import { Contact, Category } from '@/lib/types'
 import { outreachStatus, daysOverdue, formatRelativeDate } from '@/lib/utils'
 import BottomNav from '@/components/BottomNav'
 import ContactCard from '@/components/ContactCard'
 import Link from 'next/link'
 import { logoutAction } from './actions/auth'
 import { LogOut } from 'lucide-react'
+import CategoriesClient from './categories/CategoriesClient'
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -17,13 +18,29 @@ export default async function DashboardPage() {
 
   const supabase = createServerClient()
 
-  const { data: contacts } = await supabase
-    .from('contacts')
-    .select('*, category:categories(*)')
-    .eq('user_id', session.userId)
-    .order('first_name')
+  const [{ data: contacts }, { data: categories }, { data: contactCounts }] = await Promise.all([
+    supabase
+      .from('contacts')
+      .select('*, category:categories(*)')
+      .eq('user_id', session.userId)
+      .order('first_name'),
+    supabase
+      .from('categories')
+      .select('*')
+      .eq('user_id', session.userId)
+      .order('name'),
+    supabase
+      .from('contacts')
+      .select('category_id')
+      .eq('user_id', session.userId),
+  ])
 
   const all = (contacts ?? []) as Contact[]
+
+  const countMap = (contactCounts ?? []).reduce<Record<string, number>>((acc, c) => {
+    if (c.category_id) acc[c.category_id] = (acc[c.category_id] ?? 0) + 1
+    return acc
+  }, {})
 
   const overdue = all
     .filter(c => outreachStatus(c) === 'overdue')
@@ -117,6 +134,17 @@ export default async function DashboardPage() {
             </Link>
           </div>
         )}
+
+        {/* Categories */}
+        <section>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">
+            Categories
+          </h2>
+          <CategoriesClient
+            categories={(categories ?? []) as Category[]}
+            contactCounts={countMap}
+          />
+        </section>
       </div>
 
       <BottomNav />
