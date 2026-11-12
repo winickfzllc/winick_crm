@@ -76,18 +76,18 @@ export default async function DashboardPage() {
       <div className="max-w-lg mx-auto px-4 py-5 space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white rounded-2xl p-4 text-center shadow-sm">
+          <Link href="/contacts" className="bg-white rounded-2xl p-4 text-center shadow-sm active:opacity-70">
             <p className="text-2xl font-bold text-gray-900">{all.length}</p>
             <p className="text-xs text-gray-500 mt-0.5">Contacts</p>
-          </div>
-          <div className="bg-red-50 rounded-2xl p-4 text-center shadow-sm">
+          </Link>
+          <Link href="/contacts?filter=overdue" className="bg-red-50 rounded-2xl p-4 text-center shadow-sm active:opacity-70">
             <p className="text-2xl font-bold text-red-600">{overdue.length}</p>
             <p className="text-xs text-red-500 mt-0.5">Overdue</p>
-          </div>
-          <div className="bg-amber-50 rounded-2xl p-4 text-center shadow-sm">
+          </Link>
+          <Link href="/contacts?filter=due-soon" className="bg-amber-50 rounded-2xl p-4 text-center shadow-sm active:opacity-70">
             <p className="text-2xl font-bold text-amber-600">{dueSoon.length}</p>
             <p className="text-xs text-amber-500 mt-0.5">Due soon</p>
-          </div>
+          </Link>
         </div>
 
         {/* Overdue contacts */}

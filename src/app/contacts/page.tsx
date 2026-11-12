@@ -13,7 +13,7 @@ import ContactsClient from './ContactsClient'
 export default async function ContactsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; q?: string }>
+  searchParams: Promise<{ category?: string; q?: string; filter?: string }>
 }) {
   const session = await getSession()
   if (!session.userId) redirect('/login')
@@ -56,6 +56,7 @@ export default async function ContactsPage({
           categories={(categories ?? []) as Category[]}
           initialCategory={params.category}
           initialQuery={params.q}
+          initialFilter={params.filter}
         />
       </div>
 

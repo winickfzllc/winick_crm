@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { Contact, Category } from '@/lib/types'
-import { fullName } from '@/lib/utils'
+import { fullName, outreachStatus } from '@/lib/utils'
 import ContactCard from '@/components/ContactCard'
 import { Search, X } from 'lucide-react'
 import Link from 'next/link'
@@ -12,11 +12,13 @@ interface Props {
   categories: Category[]
   initialCategory?: string
   initialQuery?: string
+  initialFilter?: string
 }
 
-export default function ContactsClient({ contacts, categories, initialCategory, initialQuery }: Props) {
+export default function ContactsClient({ contacts, categories, initialCategory, initialQuery, initialFilter }: Props) {
   const [query, setQuery] = useState(initialQuery ?? '')
   const [categoryId, setCategoryId] = useState(initialCategory ?? '')
+  const [statusFilter] = useState(initialFilter ?? '')
 
   const filtered = useMemo(() => {
     return contacts.filter(c => {
@@ -25,12 +27,24 @@ export default function ContactsClient({ contacts, categories, initialCategory, 
         c.company?.toLowerCase().includes(query.toLowerCase()) ||
         c.email?.toLowerCase().includes(query.toLowerCase())
       const matchesCat = !categoryId || c.category_id === categoryId
-      return matchesQuery && matchesCat
+      const matchesStatus = !statusFilter || outreachStatus(c) === statusFilter
+      return matchesQuery && matchesCat && matchesStatus
     })
-  }, [contacts, query, categoryId])
+  }, [contacts, query, categoryId, statusFilter])
 
   return (
     <div>
+      {/* Status filter banner */}
+      {statusFilter && (
+        <div className={`mx-4 mt-3 px-4 py-2 rounded-xl text-sm font-medium ${
+          statusFilter === 'overdue'
+            ? 'bg-red-50 text-red-700'
+            : 'bg-amber-50 text-amber-700'
+        }`}>
+          Showing: {statusFilter === 'overdue' ? 'Overdue contacts' : 'Due soon contacts'}
+        </div>
+      )}
+
       {/* Search */}
       <div className="px-4 py-3">
         <div className="relative">
