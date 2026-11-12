@@ -11,7 +11,7 @@ import Link from 'next/link'
 import { logoutAction } from './actions/auth'
 import { LogOut } from 'lucide-react'
 import CategoriesClient from './categories/CategoriesClient'
-import TestNotificationButton from '@/components/TestNotificationButton'
+import NotificationButton from '@/components/NotificationButton'
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -71,7 +71,7 @@ export default async function DashboardPage() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <TestNotificationButton />
+            <NotificationButton />
             <form action={logoutAction}>
               <button type="submit" className="p-2 text-gray-400">
                 <LogOut size={20} />

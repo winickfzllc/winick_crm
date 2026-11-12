@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import PushSetup from '@/components/PushSetup'
 
 export const metadata: Metadata = {
   title: 'Winick CRM',
@@ -27,10 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
-      <body className="h-full">
-        {children}
-        <PushSetup />
-      </body>
+      <body className="h-full">{children}</body>
     </html>
   )
 }
