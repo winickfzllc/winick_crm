@@ -126,7 +126,21 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
                 <ExternalLink size={18} className="text-indigo-500 flex-shrink-0" />
                 <div>
                   <p className="text-xs text-gray-400">LinkedIn</p>
-                  <p className="text-sm font-medium text-gray-900 truncate">{c.linkedin_url.replace('https://', '')}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {(() => {
+                      try {
+                        const decoded = decodeURIComponent(c.linkedin_url)
+                        const match = decoded.match(/linkedin\.com\/in\/([^/?#]+)/)
+                        if (match) {
+                          const username = match[1].length > 25 ? match[1].slice(0, 25) + '…' : match[1]
+                          return `linkedin.com/in/${username}`
+                        }
+                        return decoded.replace(/^https?:\/\/(www\.)?/, '')
+                      } catch {
+                        return c.linkedin_url.replace(/^https?:\/\/(www\.)?/, '')
+                      }
+                    })()}
+                  </p>
                 </div>
               </a>
             )}

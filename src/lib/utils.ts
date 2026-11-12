@@ -28,7 +28,7 @@ export function formatRelativeDate(dateStr: string | null): string {
   if (!dateStr) return 'Never'
   const days = daysSince(dateStr)
   if (days === null) return 'Never'
-  if (days === 0) return 'Today'
+  if (days <= 0) return 'Today'
   if (days === 1) return 'Yesterday'
   if (days < 7) return `${days} days ago`
   if (days < 30) return `${Math.floor(days / 7)}w ago`
