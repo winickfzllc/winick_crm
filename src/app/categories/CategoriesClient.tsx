@@ -160,7 +160,7 @@ export default function CategoriesClient({ categories, contactCounts }: Props) {
 
       {!isAdding && (
         <button onClick={() => setIsAdding(true)}
-          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-2xl py-4 text-sm font-medium text-gray-500 hover:border-indigo-300 hover:text-indigo-600 transition-colors">
+          className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white rounded-2xl py-4 text-sm font-semibold active:bg-indigo-700">
           <Plus size={18} /> Add Category
         </button>
       )}
