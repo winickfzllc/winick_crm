@@ -17,6 +17,7 @@ export function daysOverdue(contact: Contact): number | null {
 }
 
 export function outreachStatus(contact: Contact): 'overdue' | 'due-soon' | 'ok' {
+  if (!contact.last_contacted_at) return 'due-soon'
   const overdue = daysOverdue(contact)
   if (overdue === null || overdue > 0) return 'overdue'
   if (overdue > -7) return 'due-soon'

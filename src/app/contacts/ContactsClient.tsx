@@ -51,8 +51,8 @@ export default function ContactsClient({ contacts, categories, initialCategory, 
       </div>
 
       {/* Category filter chips */}
-      {categories.length > 0 && (
-        <div className="px-4 pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
+      <div className="px-4 pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
+        {categories.length > 0 && (
           <button
             onClick={() => setCategoryId('')}
             className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
@@ -60,22 +60,22 @@ export default function ContactsClient({ contacts, categories, initialCategory, 
             }`}>
             All
           </button>
-          {categories.map(cat => (
-            <button key={cat.id}
-              onClick={() => setCategoryId(categoryId === cat.id ? '' : cat.id)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                categoryId === cat.id ? 'text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'
-              }`}
-              style={categoryId === cat.id ? { backgroundColor: cat.color, borderColor: cat.color } : {}}>
-              {cat.name}
-            </button>
-          ))}
-          <Link href="/categories"
-            className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border border-dashed border-gray-300 text-gray-400">
-            Manage
-          </Link>
-        </div>
-      )}
+        )}
+        {categories.map(cat => (
+          <button key={cat.id}
+            onClick={() => setCategoryId(categoryId === cat.id ? '' : cat.id)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+              categoryId === cat.id ? 'text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'
+            }`}
+            style={categoryId === cat.id ? { backgroundColor: cat.color, borderColor: cat.color } : {}}>
+            {cat.name}
+          </button>
+        ))}
+        <Link href="/categories"
+          className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border border-dashed border-gray-300 text-gray-400">
+          {categories.length === 0 ? '+ Add categories' : 'Manage'}
+        </Link>
+      </div>
 
       {/* Contact list */}
       {filtered.length > 0 ? (
