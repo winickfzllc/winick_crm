@@ -5,6 +5,7 @@ import { Category, Contact } from '@/lib/types'
 import { createContactAction, updateContactAction } from '@/app/actions/contacts'
 import { CATEGORY_COLORS } from '@/lib/utils'
 import { Plus, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 
 interface Props {
   categories: Category[]
@@ -108,7 +109,12 @@ export default function ContactForm({ categories, contact }: Props) {
         <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Organisation</h2>
 
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-2">Category</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-xs font-medium text-gray-500">Category</label>
+            <Link href="/categories" className="text-xs text-indigo-500 font-medium">
+              {categories.length === 0 ? '+ Create categories' : 'Manage'}
+            </Link>
+          </div>
           <select name="category_id" defaultValue={contact?.category_id ?? ''}
             className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">No category</option>
