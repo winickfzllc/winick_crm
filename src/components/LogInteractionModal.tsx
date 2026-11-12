@@ -1,24 +1,36 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { logInteractionAction } from '@/app/actions/contacts'
-import { INTERACTION_LABELS, INTERACTION_ICONS, InteractionType } from '@/lib/types'
+import { logInteractionAction, updateInteractionAction } from '@/app/actions/contacts'
+import { INTERACTION_LABELS, INTERACTION_ICONS, InteractionType, Interaction } from '@/lib/types'
 import { X } from 'lucide-react'
 
 interface Props {
   contactId: string
   onClose: () => void
+  interaction?: Interaction
 }
 
 const TYPES = Object.keys(INTERACTION_LABELS) as InteractionType[]
 
-export default function LogInteractionModal({ contactId, onClose }: Props) {
-  const [type, setType] = useState<InteractionType>('call')
+function toLocalDatetimeValue(isoString: string) {
+  const d = new Date(isoString)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+export default function LogInteractionModal({ contactId, onClose, interaction }: Props) {
+  const isEditing = !!interaction
+  const [type, setType] = useState<InteractionType>((interaction?.type as InteractionType) ?? 'call')
   const [pending, startTransition] = useTransition()
 
   function handleSubmit(formData: FormData) {
     startTransition(async () => {
-      await logInteractionAction(formData)
+      if (isEditing) {
+        await updateInteractionAction(interaction!.id, contactId, formData)
+      } else {
+        await logInteractionAction(formData)
+      }
       onClose()
     })
   }
@@ -28,7 +40,9 @@ export default function LogInteractionModal({ contactId, onClose }: Props) {
       <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-gray-900">Log Interaction</h2>
+          <h2 className="text-lg font-bold text-gray-900">
+            {isEditing ? 'Edit Interaction' : 'Log Interaction'}
+          </h2>
           <button onClick={onClose} className="p-1 text-gray-400">
             <X size={20} />
           </button>
@@ -63,7 +77,11 @@ export default function LogInteractionModal({ contactId, onClose }: Props) {
             <input
               type="datetime-local"
               name="occurred_at"
-              defaultValue={new Date().toISOString().slice(0, 16)}
+              defaultValue={
+                interaction
+                  ? toLocalDatetimeValue(interaction.occurred_at)
+                  : new Date().toISOString().slice(0, 16)
+              }
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
@@ -74,6 +92,7 @@ export default function LogInteractionModal({ contactId, onClose }: Props) {
             <textarea
               name="notes"
               rows={3}
+              defaultValue={interaction?.notes ?? ''}
               placeholder="What did you talk about?"
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
             />
@@ -83,7 +102,7 @@ export default function LogInteractionModal({ contactId, onClose }: Props) {
             type="submit"
             disabled={pending}
             className="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-semibold text-base disabled:opacity-60">
-            {pending ? 'Saving…' : 'Save Interaction'}
+            {pending ? 'Saving…' : isEditing ? 'Save Changes' : 'Save Interaction'}
           </button>
         </form>
       </div>

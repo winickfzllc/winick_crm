@@ -5,7 +5,7 @@ import { Interaction, INTERACTION_LABELS, INTERACTION_ICONS } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
 import { deleteInteractionAction } from '@/app/actions/contacts'
 import LogInteractionModal from '@/components/LogInteractionModal'
-import { Plus, Trash2, MessageCircle } from 'lucide-react'
+import { Plus, Trash2, Pencil, MessageCircle } from 'lucide-react'
 
 interface Props {
   contactId: string
@@ -14,6 +14,7 @@ interface Props {
 
 export default function ContactDetailClient({ contactId, interactions }: Props) {
   const [showModal, setShowModal] = useState(false)
+  const [editingInteraction, setEditingInteraction] = useState<Interaction | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -23,6 +24,16 @@ export default function ContactDetailClient({ contactId, interactions }: Props) 
       await deleteInteractionAction(id, contactId)
       setDeletingId(null)
     })
+  }
+
+  function handleEdit(interaction: Interaction) {
+    setEditingInteraction(interaction)
+    setShowModal(true)
+  }
+
+  function handleClose() {
+    setShowModal(false)
+    setEditingInteraction(null)
   }
 
   return (
@@ -49,8 +60,7 @@ export default function ContactDetailClient({ contactId, interactions }: Props) 
         ) : (
           <div className="space-y-3">
             {interactions.map(interaction => (
-              <div key={interaction.id}
-                className="flex gap-3 group">
+              <div key={interaction.id} className="flex gap-3">
                 <div className="w-9 h-9 flex items-center justify-center bg-gray-100 rounded-xl flex-shrink-0 text-lg">
                   {INTERACTION_ICONS[interaction.type]}
                 </div>
@@ -60,12 +70,19 @@ export default function ContactDetailClient({ contactId, interactions }: Props) 
                       <p className="text-sm font-medium text-gray-900">{INTERACTION_LABELS[interaction.type]}</p>
                       <p className="text-xs text-gray-400">{formatDate(interaction.occurred_at)}</p>
                     </div>
-                    <button
-                      onClick={() => handleDelete(interaction.id)}
-                      disabled={deletingId === interaction.id}
-                      className="p-1 text-gray-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Trash2 size={14} />
-                    </button>
+                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                      <button
+                        onClick={() => handleEdit(interaction)}
+                        className="p-1.5 text-gray-400 hover:text-indigo-500">
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(interaction.id)}
+                        disabled={deletingId === interaction.id}
+                        className="p-1.5 text-gray-400 hover:text-red-400 disabled:opacity-40">
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </div>
                   {interaction.notes && (
                     <p className="text-sm text-gray-600 mt-1">{interaction.notes}</p>
@@ -88,7 +105,8 @@ export default function ContactDetailClient({ contactId, interactions }: Props) 
       {showModal && (
         <LogInteractionModal
           contactId={contactId}
-          onClose={() => setShowModal(false)}
+          onClose={handleClose}
+          interaction={editingInteraction ?? undefined}
         />
       )}
     </>

@@ -132,6 +132,44 @@ export async function logInteractionAction(formData: FormData) {
   revalidatePath(`/contacts/${contactId}`)
 }
 
+export async function updateInteractionAction(id: string, contactId: string, formData: FormData) {
+  const userId = await requireAuth()
+  const supabase = createServerClient()
+
+  const occurredAt = (formData.get('occurred_at') as string) || new Date().toISOString()
+
+  await supabase
+    .from('interactions')
+    .update({
+      type: formData.get('type') as string,
+      notes: (formData.get('notes') as string) || null,
+      occurred_at: occurredAt,
+    })
+    .eq('id', id)
+    .eq('user_id', userId)
+
+  // Recalculate last_contacted_at
+  const { data: latest } = await supabase
+    .from('interactions')
+    .select('occurred_at')
+    .eq('contact_id', contactId)
+    .order('occurred_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  await supabase
+    .from('contacts')
+    .update({
+      last_contacted_at: latest?.occurred_at ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', contactId)
+    .eq('user_id', userId)
+
+  revalidatePath('/')
+  revalidatePath(`/contacts/${contactId}`)
+}
+
 export async function deleteInteractionAction(id: string, contactId: string) {
   const userId = await requireAuth()
   const supabase = createServerClient()
