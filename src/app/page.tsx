@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { logoutAction } from './actions/auth'
 import { LogOut } from 'lucide-react'
 import CategoriesClient from './categories/CategoriesClient'
+import TestNotificationButton from '@/components/TestNotificationButton'
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -69,11 +70,14 @@ export default async function DashboardPage() {
                 : 'All caught up!'}
             </h1>
           </div>
-          <form action={logoutAction}>
-            <button type="submit" className="p-2 text-gray-400">
-              <LogOut size={20} />
-            </button>
-          </form>
+          <div className="flex items-center gap-3">
+            <TestNotificationButton />
+            <form action={logoutAction}>
+              <button type="submit" className="p-2 text-gray-400">
+                <LogOut size={20} />
+              </button>
+            </form>
+          </div>
         </div>
       </div>
 
